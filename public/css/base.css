@@ -1,0 +1,69 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden; /* fixed stage */
+}
+
+.app {
+  width: 1920px;
+  height: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  box-shadow: var(--shadow);
+  background: var(--bg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.topbar__left, .topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
+}
+
+.brand__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 6px var(--accent-soft);
+}
+
+.brand__title {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.nav { display: flex; gap: 8px; }
+
+.stage {
+  position: relative;
+  padding: 14px;
+}
+
+/* Screens */
+.screen { display: none; height: 100%; }
+.screen.is-active { display: block; }
+
+/* Fixed stage height inside main area */
+.stage, .screen, .screen--case { height: 100%; }

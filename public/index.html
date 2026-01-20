@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client DB</title>
+
+  <!-- Google Fonts (offline note: you can later self-host if needed) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/theme-light.css" />
+  <link rel="stylesheet" href="css/theme-dark.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+
+<body>
+  <div id="app" class="app">
+    <header class="topbar" role="banner">
+      <div class="topbar__left">
+        <div class="brand">
+          <div class="brand__dot"></div>
+          <div class="brand__title" id="appTitle">Client DB</div>
+        </div>
+
+        <nav class="nav" aria-label="Главное меню">
+          <button class="nav__btn" data-route="case"   type="button">Досье</button>
+          <button class="nav__btn" data-route="clients" type="button">Клиенты</button>
+          <button class="nav__btn" data-route="documents" type="button">Документы</button>
+          <button class="nav__btn" data-route="calendar" type="button">Календарь</button>
+        </nav>
+      </div>
+
+      <div class="topbar__right">
+        <div class="pill" id="nowClock">--:--:--</div>
+        <button class="btn btn--ghost" id="themeToggle" type="button" title="Переключить тему">Тема</button>
+      </div>
+    </header>
+
+    <main class="stage" role="main">
+      <!-- Screen: CASE -->
+      <section class="screen screen--case" data-screen="case" aria-label="Досье клиента">
+        <div id="caseLayout" class="quad-layout">
+          <!-- TL: Client card -->
+          <section class="panel" data-panel="client">
+            <div class="panel__header" data-header>
+              <div class="panel__title">Клиент</div>
+              <div class="panel__actions">
+                <button class="iconbtn" id="clientPrev" type="button" title="Предыдущий">‹</button>
+                <button class="iconbtn" id="clientNext" type="button" title="Следующий">›</button>
+              </div>
+            </div>
+
+            <div class="panel__body">
+              <div class="client-card">
+                <img id="clientPhoto" class="client-card__photo" alt="Фото клиента" src="assets/clients/photos/placeholder.svg" />
+                <div class="client-card__meta">
+                  <div class="client-card__name" id="clientName">—</div>
+                  <div class="badge" id="clientStatus">—</div>
+
+                  <div class="kv" id="clientFields"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TR: Dossier -->
+          <section class="panel" data-panel="dossier">
+            <div class="panel__header" data-header>
+              <div class="panel__title">Досье</div>
+              <div class="panel__actions">
+                <button class="btn btn--subtle" id="dossierEditToggle" type="button">Редактировать</button>
+                <button class="btn btn--ghost" type="button">Add note</button>
+                <button class="btn btn--ghost" type="button">Export</button>
+                <button class="btn btn--ghost" type="button">Assign</button>
+              </div>
+            </div>
+
+            <div class="panel__body panel__body--tight">
+              <div class="tabs" data-tabs="dossierTabs">
+                <div class="tabs__bar" role="tablist" aria-label="Вкладки досье">
+                  <button class="tabs__tab" data-tab="overview" type="button">Overview</button>
+                  <button class="tabs__tab" data-tab="notes" type="button">Notes</button>
+                  <button class="tabs__tab" data-tab="billing" type="button">Billing</button>
+                  <button class="tabs__tab" data-tab="attachments" type="button">Attachments</button>
+                </div>
+
+                <div class="tabs__panes">
+                  <div class="tabs__pane" data-pane="overview">
+                    <div id="dossierContainer" class="richbox" aria-label="Текст досье (rich text)"></div>
+                  </div>
+
+                  <div class="tabs__pane" data-pane="notes">
+                    <div class="placeholder">
+                      <div class="placeholder__title">Notes</div>
+                      <div class="placeholder__text">Заглушка. Можно добавить потом.</div>
+                    </div>
+                  </div>
+
+                  <div class="tabs__pane" data-pane="billing">
+                    <div class="placeholder">
+                      <div class="placeholder__title">Billing</div>
+                      <div class="placeholder__text">Заглушка. Можно добавить потом.</div>
+                    </div>
+                  </div>
+
+                  <div class="tabs__pane" data-pane="attachments">
+                    <div class="placeholder">
+                      <div class="placeholder__title">Attachments</div>
+                      <div class="placeholder__text">Заглушка. Можно добавить список документов.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BL: Waveform -->
+          <section class="panel" data-panel="waveform">
+            <div class="panel__header" data-header>
+              <div class="panel__title">Call Audio</div>
+              <div class="panel__actions">
+                <div class="pill pill--danger" id="recIndicator">REC</div>
+                <div class="pill" id="callTimecode">00:00</div>
+                <div class="pill" id="callDatetime">—</div>
+              </div>
+            </div>
+
+            <div class="panel__body panel__body--tight">
+              <div class="wave-wrap">
+                <canvas id="waveCanvas" width="800" height="220" aria-label="Waveform"></canvas>
+                <div class="wave-footer">
+                  <button class="btn btn--subtle" id="wavePlayPause" type="button">Play</button>
+                  <input class="slider" id="waveSeek" type="range" min="0" max="1000" value="0" />
+                  <div class="muted" id="waveInfo">—</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BR: Transcript -->
+          <section class="panel" data-panel="transcript">
+            <div class="panel__header" data-header>
+              <div class="panel__title">Расшифровка</div>
+              <div class="panel__actions">
+                <div class="pill">RU</div>
+              </div>
+            </div>
+
+            <div class="panel__body">
+              <div id="transcriptContainer" class="transcript" aria-label="Текст расшифровки"></div>
+            </div>
+          </section>
+
+          <!-- Splitters -->
+          <div class="splitter splitter--v" id="splitV" title="Перетащи для изменения ширины"></div>
+          <div class="splitter splitter--h" id="splitH" title="Перетащи для изменения высоты"></div>
+        </div>
+      </section>
+
+      <!-- Screen: CLIENTS -->
+      <section class="screen" data-screen="clients" aria-label="Список клиентов">
+        <div class="page">
+          <div class="page__header">
+            <div class="page__title">Клиенты</div>
+            <div class="page__tools">
+              <input class="input" id="clientSearch" type="text" placeholder="Поиск по фамилии/имени (опционально)" />
+            </div>
+          </div>
+          <div id="clientsList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- Screen: DOCUMENTS -->
+      <section class="screen" data-screen="documents" aria-label="Документы">
+        <div class="page">
+          <div class="page__header">
+            <div class="page__title">Документы</div>
+          </div>
+          <div class="placeholder">
+            <div class="placeholder__title">Documents</div>
+            <div class="placeholder__text">Заглушка экрана. Здесь потом можно показывать файлы/сканы.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Screen: CALENDAR -->
+      <section class="screen" data-screen="calendar" aria-label="Календарь">
+        <div class="page">
+          <div class="page__header">
+            <div class="page__title">Календарь</div>
+          </div>
+          <div class="placeholder">
+            <div class="placeholder__title">Calendar</div>
+            <div class="placeholder__text">Заглушка экрана. Здесь потом можно показывать события.</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

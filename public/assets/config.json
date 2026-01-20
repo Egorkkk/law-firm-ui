@@ -1,0 +1,40 @@
+{
+  "app": {
+    "title": "Client DB",
+    "defaultRoute": "case",
+    "defaultTheme": "light",
+    "allowPanelHeaders": true
+  },
+  "layout": {
+    "width": 1920,
+    "height": 1080,
+    "leftColumnPercent": 40,
+    "topRowPercent": 40,
+    "minPanelPx": 180
+  },
+  "themes": ["light", "dark"],
+  "statusColors": {
+    "Active": "var(--status-active)",
+    "On hold": "var(--status-hold)",
+    "Closed": "var(--status-closed)",
+    "VIP": "var(--status-vip)"
+  },
+  "labels": {
+    "menu": {
+      "case": "Досье",
+      "clients": "Клиенты",
+      "documents": "Документы",
+      "calendar": "Календарь"
+    },
+    "fields": {
+      "id": "ID дела",
+      "dob": "Дата рождения",
+      "phone": "Телефон",
+      "email": "Email"
+    }
+  },
+  "waveform": {
+    "mode": "audio",
+    "samples": 2048
+  }
+}

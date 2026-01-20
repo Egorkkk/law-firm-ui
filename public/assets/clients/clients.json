@@ -1,0 +1,28 @@
+[
+  {
+    "id": "c001",
+    "firstName": "Ирина",
+    "lastName": "Мельникова",
+    "status": "Active",
+    "dob": "1987-04-12",
+    "phone": "+7 999 111-22-33",
+    "email": "i.melnikova@example.com",
+    "photo": "assets/clients/photos/placeholder.svg",
+    "dossier": "assets/clients/dossiers/c001.html",
+    "audio": "assets/clients/audio/c001_call.mp3",
+    "transcript": "assets/clients/transcripts/c001.txt"
+  },
+  {
+    "id": "c002",
+    "firstName": "Андрей",
+    "lastName": "Сафронов",
+    "status": "VIP",
+    "dob": "1979-11-03",
+    "phone": "+7 999 222-33-44",
+    "email": "a.safronov@example.com",
+    "photo": "assets/clients/photos/placeholder.svg",
+    "dossier": "assets/clients/dossiers/c002.html",
+    "audio": "assets/clients/audio/c002_call.mp3",
+    "transcript": "assets/clients/transcripts/c002.txt"
+  }
+]
