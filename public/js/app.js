@@ -5,12 +5,16 @@ import { createWaveformPlayer } from "./waveform.js";
 import { attachRichEditor } from "./editor.js";
 import { initTabs } from "./ui/tabs.js";
 import { el, qsa, fetchText } from "./ui/util.js";
+import { initClientsAdmin } from "./ui/clients-admin.js";
+import { initIncomingCallModal } from "./ui/incoming-call.js";
 
 const state = {
   config: null,
   waveform: null,
   editor: null,
-  tabs: null
+  tabs: null,
+  admin: null,
+  callModal: null
 };
 
 function setTheme(theme) {
@@ -37,7 +41,7 @@ function setActiveScreen(name) {
 }
 
 function formatFullName(c) {
-  return [c?.firstName, c?.lastName].filter(Boolean).join(" ").trim() || "—";
+  return [c?.lastName, c?.firstName, c?.middleName].filter(Boolean).join(" ").trim() || "—";
 }
 
 function statusColorVar(config, statusName) {
@@ -57,8 +61,11 @@ function buildFields(config, client) {
   const rows = [];
   for (const key of order) {
     const label = labels[key];
-    const value = client?.[key];
-    if (!value) continue;
+    let value = client?.[key];
+    // UX: show plain 3-digit number instead of internal id prefix.
+    if (key === "id" && value) value = String(value).replace(/^c/i, "");
+    // do not drop numeric 0
+    if (value === undefined || value === null || value === "") continue;
     rows.push(`<div class="kv__k">${escapeHtml(label)}</div><div class="kv__v">${escapeHtml(String(value))}</div>`);
   }
   return rows.join("");
@@ -71,6 +78,16 @@ function escapeHtml(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function decodeHtmlEntities(s) {
+  // Needed because some dossierData JSON is stored as HTML-escaped text (&quot;...&quot;)
+  return String(s ?? "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, "&");
 }
 
 async function renderCurrentClient() {
@@ -89,7 +106,29 @@ async function renderCurrentClient() {
   dossierEl.innerHTML = `<div class="muted">Загрузка досье…</div>`;
   try {
     const html = await fetchText(c.dossier);
-    dossierEl.innerHTML = html;
+    const num = String(c.id || "").replace(/^c/i, "");
+    // Make the header consistent even for older dossier files.
+    const patched = html
+      .replace(/<h2[^>]*>\s*Дело\s*:\s*[^<]*<\/h2>/i, `<h2>Номер клиента: ${escapeHtml(num)}</h2>`)
+      .replace(/<h2[^>]*>\s*Номер клиента\s*:\s*[^<]*<\/h2>/i, `<h2>Номер клиента: ${escapeHtml(num)}</h2>`);
+    dossierEl.innerHTML = patched;
+
+    // If dossier contains embedded JSON, use it to enrich the client card (e.g. responsible).
+    const dataEl = dossierEl.querySelector('#dossierData[type="application/json"]');
+    if (dataEl?.textContent) {
+      try {
+        const payload = JSON.parse(decodeHtmlEntities(dataEl.textContent));
+        const d = payload?.dossier || payload || {};
+        const cc = payload?.client || {};
+        if (d?.responsible != null) c.responsible = d.responsible;
+        if ((c.address == null || c.address === "") && cc?.address) c.address = cc.address;
+        if ((c.rating == null || c.rating === "") && cc?.rating != null) c.rating = cc.rating;
+        // refresh left-top fields
+        el("clientFields").innerHTML = buildFields(state.config, c);
+      } catch {
+        // ignore JSON parse failures
+      }
+    }
   } catch {
     dossierEl.innerHTML = `<div class="muted">Не удалось загрузить досье: ${escapeHtml(String(c.dossier || ""))}</div>`;
   }
@@ -131,20 +170,29 @@ function renderClientsList(filterText = "") {
   const ft = filterText.trim().toLowerCase();
   const clients = getClients().filter(c => {
     if (!ft) return true;
-    const hay = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase();
+      const hay = `${c.firstName || ""} ${c.middleName || ""} ${c.lastName || ""}`.toLowerCase();
     return hay.includes(ft);
   });
 
   list.innerHTML = clients.map(c => {
     const name = formatFullName(c);
     const status = c.status || "—";
+    const num = String(c.id || "").replace(/^c/i, "");
+    const responsible = c.responsible || "—";
+    const badgeColor = statusColorVar(state.config, status);
+    const address = c.address || "";
     return `
       <div class="list__item" data-client-id="${escapeHtml(c.id)}">
         <div class="list__left">
           <img class="list__avatar" src="${escapeHtml(c.photo || "assets/clients/photos/placeholder.svg")}" alt="">
           <div>
-            <div class="list__name">${escapeHtml(name)}</div>
-            <div class="list__meta">${escapeHtml(status)}</div>
+            <div class="list__headline">
+              <div class="list__name">${escapeHtml(name)}</div>
+              <span class="badge badge--outline badge--sm" style="--badge-color:${escapeHtml(badgeColor)}">${escapeHtml(status)}</span>
+              <span class="list__clientno">№${escapeHtml(num || "—")}</span>
+              <span class="list__responsible" data-resp>${escapeHtml(responsible)}</span>
+            </div>
+            <div class="list__meta">${escapeHtml(address)}</div>
           </div>
         </div>
         <div class="pill">Open</div>
@@ -160,6 +208,41 @@ function renderClientsList(filterText = "") {
       await renderCurrentClient();
     });
   });
+
+  // Enrich the list with "Ответственный" by parsing embedded dossier JSON.
+  // Small dataset (10–20 clients) -> safe to fetch lazily.
+  enrichClientsListResponsible(list, clients).catch(() => {});
+}
+
+async function enrichClientsListResponsible(listEl, clients) {
+  const tasks = [];
+  for (const c of clients) {
+    if (c?.responsible) continue;
+    if (!c?.dossier) continue;
+
+    const item = listEl.querySelector(`[data-client-id="${CSS.escape(String(c.id))}"]`);
+    const respEl = item?.querySelector("[data-resp]");
+    if (!respEl) continue;
+
+    // Avoid spamming the network for already empty placeholders.
+    tasks.push((async () => {
+      try {
+        const html = await fetchText(c.dossier);
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const dataEl = doc.querySelector('#dossierData[type="application/json"]');
+        if (!dataEl?.textContent) return;
+        const payload = JSON.parse(decodeHtmlEntities(dataEl.textContent));
+        const d = payload?.dossier || payload || {};
+        const resp = d?.responsible;
+        if (!resp) return;
+        c.responsible = resp;
+        respEl.textContent = String(resp);
+      } catch {
+        // ignore
+      }
+    })());
+  }
+  await Promise.all(tasks);
 }
 
 function initClock() {
@@ -173,7 +256,7 @@ function initClock() {
 }
 
 function applyConfigToUI(config) {
-  el("appTitle").textContent = config?.app?.title || "Client DB";
+  el("appTitle").textContent = config?.app?.title || "Адвокатская контора ЮСТАСС";
 
   // headers optional
   const allowHeaders = config?.app?.allowPanelHeaders ?? true;
@@ -195,6 +278,17 @@ async function init() {
 
   // load clients
   await loadClients("assets/clients/clients.json");
+
+    // Incoming call modal
+  state.callModal = initIncomingCallModal({
+    config: state.config,
+    getClients,
+    onAcceptClient: async (clientId) => {
+      setCurrentById(clientId);
+      routeTo("case");
+      await renderCurrentClient();
+    }
+  });
 
   // splitters
   initSplitters({
@@ -249,6 +343,20 @@ async function init() {
     setActiveScreen(r);
     if (r === "case") await renderCurrentClient();
     if (r === "clients") renderClientsList(search.value);
+    if (r === "manage") {
+      if (!state.admin) {
+        state.admin = initClientsAdmin({
+          rootEl: el("manageClientsRoot"),
+          onOpenClient: async (id) => {
+            // convenience: allow opening client card screen from admin
+            setCurrentById(id);
+            routeTo("case");
+            await renderCurrentClient();
+          }
+        });
+      }
+      await state.admin.render();
+    }
   };
 
   window.addEventListener("hashchange", go);

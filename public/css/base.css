@@ -59,11 +59,45 @@ body {
 .stage {
   position: relative;
   padding: 14px;
+  min-height: 0; /* allow inner scroll areas inside grid */
+  overflow: hidden; /* keep scroll inside lists/forms */
 }
 
 /* Screens */
-.screen { display: none; height: 100%; }
+.screen { display: none; height: 100%; min-height: 0; }
 .screen.is-active { display: block; }
 
 /* Fixed stage height inside main area */
 .stage, .screen, .screen--case { height: 100%; }
+
+/* Thin themed scrollbars (Chrome/Edge + Firefox) */
+:root {
+  --scrollbar-thumb: color-mix(in srgb, var(--text) 18%, transparent);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--accent) 35%, transparent);
+  --scrollbar-track: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Chrome / Edge / Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;      /* makes it look thinner */
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: content-box;
+}

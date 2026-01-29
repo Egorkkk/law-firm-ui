@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client DB</title>
+  <title>Адвокатская контора ЮСТАСС</title>
 
   <!-- Google Fonts (offline note: you can later self-host if needed) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,12 +22,13 @@
       <div class="topbar__left">
         <div class="brand">
           <div class="brand__dot"></div>
-          <div class="brand__title" id="appTitle">Client DB</div>
+          <div class="brand__title" id="appTitle">Адвокатская контора ЮСТАСС</div>
         </div>
 
         <nav class="nav" aria-label="Главное меню">
           <button class="nav__btn" data-route="case"   type="button">Досье</button>
           <button class="nav__btn" data-route="clients" type="button">Клиенты</button>
+          <button class="nav__btn" data-route="manage" type="button">Управление клиентами</button>
           <button class="nav__btn" data-route="documents" type="button">Документы</button>
           <button class="nav__btn" data-route="calendar" type="button">Календарь</button>
         </nav>
@@ -173,6 +174,11 @@
         </div>
       </section>
 
+      <!-- Screen: MANAGE CLIENTS -->
+      <section class="screen" data-screen="manage" aria-label="Управление клиентами">
+        <div class="page" id="manageClientsRoot"></div>
+      </section>
+
       <!-- Screen: DOCUMENTS -->
       <section class="screen" data-screen="documents" aria-label="Документы">
         <div class="page">
@@ -203,5 +209,51 @@
   </div>
 
   <script type="module" src="js/app.js"></script>
+
+  <!-- Incoming Call Modal -->
+  <div id="callOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="call-modal" role="dialog" aria-modal="true" aria-labelledby="callTitle">
+      <div class="call-modal__top">
+        <div class="call-modal__left">
+          <div class="call-modal__title" id="callTitle">Входящий звонок</div>
+          <div class="call-modal__name">
+            <span id="callClientName">—</span>
+            <span id="callClientStatus" class="status-ring" title="Статус">—</span>
+          </div>
+          <div class="call-modal__meta">
+            <div class="call-meta__row">
+              <span class="muted">Ответственный:</span>
+              <span id="callResponsible">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="call-modal__right">
+          <div class="call-modal__num">№<span id="callClientNumber">—</span></div>
+        </div>
+      </div>
+
+      <div class="call-modal__mid">
+        <img id="callClientPhoto" class="call-modal__photo" src="assets/clients/photos/placeholder.svg" alt="">
+        <div class="call-modal__actions">
+          <button id="callDeclineBtn" class="call-btn call-btn--decline" title="Отклонить">
+            <span class="call-btn__icon" data-icon="decline"></span>
+          </button>
+          <button id="callAcceptBtn" class="call-btn call-btn--accept" title="Принять">
+            <span class="call-btn__icon" data-icon="accept"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="call-modal__bottom">
+        <button id="callTransferToggle" class="btn btn--ghost">Перевести</button>
+        <div id="callTransferPanel" class="call-transfer is-hidden">
+          <select id="callLawyerSelect" class="input"></select>
+        </div>
+        <div id="callToast" class="call-toast is-hidden">Переведено</div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

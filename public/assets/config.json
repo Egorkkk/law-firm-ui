@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Client DB",
+    "title": "Адвокатская контора ЮСТАСС",
     "defaultRoute": "case",
     "defaultTheme": "light",
     "allowPanelHeaders": true
@@ -12,29 +12,40 @@
     "topRowPercent": 40,
     "minPanelPx": 180
   },
-  "themes": ["light", "dark"],
+  "themes": [
+    "light",
+    "dark"
+  ],
   "statusColors": {
-    "Active": "var(--status-active)",
-    "On hold": "var(--status-hold)",
-    "Closed": "var(--status-closed)",
-    "VIP": "var(--status-vip)"
+    "Стандарт": "var(--status-closed)",
+    "Плюс": "var(--status-hold)",
+    "Плюс Про": "var(--status-active)",
+    "ВИП": "var(--status-vip)"
   },
   "labels": {
     "menu": {
       "case": "Досье",
       "clients": "Клиенты",
       "documents": "Документы",
-      "calendar": "Календарь"
+      "calendar": "Календарь",
+      "manage-clients": "Управление клиентами"
     },
     "fields": {
-      "id": "ID дела",
+      "id": "Номер клиента",
+      "rating": "Рейтинг",
+      "responsible": "Ответственный",
       "dob": "Дата рождения",
-      "phone": "Телефон",
+      "address": "Адрес",
       "email": "Email"
     }
   },
   "waveform": {
     "mode": "audio",
     "samples": 2048
-  }
+  },
+  "callQueue": [
+    "517",
+    "883",
+    "742"
+  ]
 }
